@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1522699422360928346/IcArpZWvKcjgPfyaqywAphT6Vp2IJx87pjmpUQIXMG67uLTRCQ2ygvWAnRwZsADTEwzG';
 
     // Google Sheets Web App URL
-    const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwBAbtYtEkSy99SX_uU5naPQtd8h8hllNe5DFgVuhG1n2gOYcIBkiuHgfhJ93ChVtL8/exec';
+    const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxVsKgHo4kFnW20K8qRJkYs0GEYQwLSuBHnRKrX6ngFvPCkC7fZb6Vpb5InYOPUin80xQ/exec';
 
     // Data for Algerian Wilayas (Provinces) and delivery prices
     const wilayaPrices = [
