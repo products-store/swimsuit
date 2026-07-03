@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Discord Webhook URL - IMPORTANT: In a real production app, this should be sent from a backend server, not directly from frontend.
-    const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1450619362489929779/aY4FOLWR4zZPvaUhNrgpApklD2-58nOvzEvgzMulspgLv6n4XSy3K1ahaWvKPq3pGf0r';
+    const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1522699422360928346/IcArpZWvKcjgPfyaqywAphT6Vp2IJx87pjmpUQIXMG67uLTRCQ2ygvWAnRwZsADTEwzG';
 
     // Google Sheets Web App URL
     const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwBAbtYtEkSy99SX_uU5naPQtd8h8hllNe5DFgVuhG1n2gOYcIBkiuHgfhJ93ChVtL8/exec';
