@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentDeliveryPrice = 0;
     let selectedWilayaData = null;
     let selectedDeliveryMethod = 'office'; // Default delivery method
-    const productPrice = 2900; // سعر المنتج
+    const productPrice = 3500; // سعر المنتج
 
     // --- Functions ---
 
