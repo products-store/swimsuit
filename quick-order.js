@@ -317,6 +317,27 @@ const sendToDiscordWebhook = async (order) => {
             return;
         }
 
+
+
+
+
+        // [الكود الجديد]: التقاط زر الإرسال وتعطيله
+        const submitBtn = quickOrderForm.querySelector('.submit-order-btn');
+        const originalBtnText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'جاري إرسال الطلب... ⏳';
+        submitBtn.style.opacity = '0.7';
+        submitBtn.style.cursor = 'not-allowed';
+
+        // Get selected color and size...
+        // ... (نفس الكود الخاص بك)
+
+
+
+
+
+
+
         // Get selected color and size from the main product section
         const selectedColorBtn = document.querySelector('.color-btn.active');
         const selectedSizeBtn = document.querySelector('.size-btn.active');
@@ -360,42 +381,52 @@ const orderItem = {
             totalAmount: productsTotalPrice + currentDeliveryPrice,
             status: 'Pending'
         };
+try {
+            // إرسال البيانات للمنصتين
+            const [webhookSent, sheetsSent] = await Promise.all([
+                sendToDiscordWebhook(order),
+                sendToGoogleSheets(order)
+            ]);
 
-// Attempt to send to Discord and Google Sheets simultaneously
-        const webhookSent = await sendToDiscordWebhook(order);
-        sendToGoogleSheets(order); // إضافة الإرسال لـ Google Sheets
+            if (webhookSent) {
+                let allOrders = JSON.parse(localStorage.getItem('qudwahOrders')) || [];
+                allOrders.push(order);
+                localStorage.setItem('qudwahOrders', JSON.stringify(allOrders));
 
-if (webhookSent) {
+                const cartCountElement = document.querySelector('.cart-count');
+                if (cartCountElement) {
+                    cartCountElement.textContent = quantity;
+                }
 
-    // Save the order to localStorage (optional, for history or admin panel)
-    let allOrders = JSON.parse(localStorage.getItem('qudwahOrders')) || [];
-    allOrders.push(order);
-    localStorage.setItem('qudwahOrders', JSON.stringify(allOrders));
+                if (confirm('لقد تم استلام طلبك ، سنتصل بك للتأكيد. اضغط موافق للعودة للصفحة الرئيسية.')) {
+                    window.location.href = 'index.html';
+                }
 
-    // Update global cart count
-    const cartCountElement = document.querySelector('.cart-count');
-    if (cartCountElement) {
-        cartCountElement.textContent = quantity;
-    }
-
-    // Redirect to confirmation page
-    if (confirm('لقد تم استلام طلبك ، سنتصل بك للتأكيد. اضغط موافق للعودة للصفحة الرئيسية.')) {
-        window.location.href = 'index.html';
-    }
-// بعد تأكيد الطلب بنجاح
-fbq('track', 'Purchase', {
-    value: order.totalAmount,
-    currency: 'DZD',
-    contents: order.items.map(item => ({
-        id: item.id,
-        quantity: item.quantity,
-        item_price: item.price
-    }))
-});
-} else {
-    // If webhook failed, alert was already shown by sendToDiscordWebhook
-    // Do not redirect, allow user to retry
-}
+                fbq('track', 'Purchase', {
+                    value: order.totalAmount,
+                    currency: 'DZD',
+                    contents: order.items.map(item => ({
+                        id: item.id,
+                        quantity: item.quantity,
+                        item_price: item.price
+                    }))
+                });
+            } else {
+                // إعادة تفعيل الزر في حال الفشل
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+            }
+        } catch (error) {
+            // إعادة تفعيل الزر عند انقطاع الاتصال
+            console.error("Error submitting quick order:", error);
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+            alert('حدث خطأ في الاتصال. يرجى التحقق من الإنترنت والمحاولة مجدداً.');
+        }
     });
 
     // Optional: Load saved info if available from previous session (user convenience)
