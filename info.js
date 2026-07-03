@@ -339,7 +339,15 @@ const sendToGoogleSheets = async (order) => {
         }
 
 
-        // Construct shipping information
+// [الكود الجديد]: التقاط زر الإرسال وتعطيله
+        const submitBtn = shippingForm.querySelector('.submit-order-btn');
+        const originalBtnText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'جاري معالجة الطلب... ⏳';
+        submitBtn.style.opacity = '0.7';
+        submitBtn.style.cursor = 'not-allowed';
+
+// Construct shipping information
 const shippingInfo = {
     fullName: fullNameInput.value.trim(),
     phone: phoneInput.value.trim(),
@@ -362,40 +370,54 @@ const shippingInfo = {
             status: 'Pending'
         };
 
-        // Attempt to send to Discord
-        const webhookSent = await sendToDiscordWebhook(order);
-        sendToGoogleSheets(order); // إضافة الإرسال لـ Google Sheets
+try {
+            // إرسال البيانات للمنصتين في نفس الوقت (كما عدلناها سابقاً)
+            const [webhookSent, sheetsSent] = await Promise.all([
+                sendToDiscordWebhook(order),
+                sendToGoogleSheets(order)
+            ]);
 
-if (webhookSent) {
+            if (webhookSent) {
+                // حفظ الطلب ومسح السلة
+                let allOrders = JSON.parse(localStorage.getItem('qudwahOrders')) || [];
+                allOrders.push(order);
+                localStorage.setItem('qudwahOrders', JSON.stringify(allOrders));
 
-    // Save the order to localStorage (optional, for history or admin panel)
-    let allOrders = JSON.parse(localStorage.getItem('qudwahOrders')) || [];
-    allOrders.push(order);
-    localStorage.setItem('qudwahOrders', JSON.stringify(allOrders));
+                localStorage.removeItem('qudwahCart');
+                cart = [];
+                updateGlobalCartCount(); 
 
-    // Clear the cart after placing the order
-    localStorage.removeItem('qudwahCart');
-    cart = [];
-    updateGlobalCartCount(); // Update header count to 0
+                // توجيه المستخدم
+                if (confirm('لقد تم استلام طلبك ، سنتصل بك للتأكيد. اضغط موافق للعودة للصفحة الرئيسية.')) {
+                    window.location.href = 'index.html';
+                }
 
-    // Redirect to confirmation page (create this next)
-    if (confirm('لقد تم استلام طلبك ، سنتصل بك للتأكيد. اضغط موافق للعودة للصفحة الرئيسية.')) {
-        window.location.href = 'index.html';
-    }
-// بعد تأكيد الطلب بنجاح
-fbq('track', 'Purchase', {
-    value: order.totalAmount,
-    currency: 'DZD',
-    contents: order.items.map(item => ({
-        id: item.id,
-        quantity: item.quantity,
-        item_price: item.price
-    }))
-});
-} else {
-    // If webhook failed, alert was already shown by sendToDiscordWebhook
-    // Do not clear cart or redirect, allow user to retry
-}
+                // Facebook Pixel
+                fbq('track', 'Purchase', {
+                    value: order.totalAmount,
+                    currency: 'DZD',
+                    contents: order.items.map(item => ({
+                        id: item.id,
+                        quantity: item.quantity,
+                        item_price: item.price
+                    }))
+                });
+            } else {
+                // إذا فشل الديسكورد (رغم عدم وجود خطأ برمجي)، نعيد تفعيل الزر
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+            }
+        } catch (error) {
+            // إذا انقطع الإنترنت أو حدث خطأ غير متوقع، نعيد تفعيل الزر
+            console.error("Error submitting order:", error);
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+            alert('حدث خطأ غير متوقع. يرجى التحقق من اتصالك بالإنترنت والمحاولة مجدداً.');
+        }
 
     });
 
